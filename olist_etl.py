@@ -1,7 +1,8 @@
 import kagglehub
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 import os
+import seaborn as sb
 
 # -----------------------------
 # 1. DOWNLOAD DATASETS
@@ -9,7 +10,6 @@ import os
 olist_path = kagglehub.dataset_download("olistbr/brazilian-ecommerce")
 funnel_path = kagglehub.dataset_download("olistbr/marketing-funnel-olist")
 
-# Debug print
 print("Funnel path:", funnel_path)
 print("Files in funnel dataset:")
 print(os.listdir(funnel_path))
@@ -38,7 +38,7 @@ closed_deals = pd.read_csv(f"{funnel_path}/olist_closed_deals_dataset.csv")
 engine = create_engine("postgresql://postgres:Postgres28@localhost:5432/olist_db")
 
 # -----------------------------
-# 5. LOAD ALL TABLES INTO POSTGRES
+# 5. LOAD ALL TABLES INTO POSTGRES (raw schema)
 # -----------------------------
 tables = {
     "customers": customers,
@@ -55,7 +55,32 @@ tables = {
 
 for name, df in tables.items():
     df.to_sql(name, engine, schema="raw", if_exists="replace", index=False)
-    print(f"Loaded table: {name}")
+    print(f"Loaded table: raw.{name}")
 
-print("All tables loaded successfully.")
+print("All raw tables loaded successfully.")
+
+# -----------------------------
+# 6. RUN DDL TO CREATE CORE SCHEMA
+# -----------------------------
+
+ddl_path = os.path.join("sql", "ddl_core.sql")
+
+with engine.begin() as conn:
+    with open(ddl_path, "r", encoding="utf-8") as f:
+        ddl_sql = f.read()
+
+    conn.execute(text(ddl_sql))
+    print("Core schema (core.* tables, indexes, views) created successfully.")
+
+# -----------------------------
+# 7. LOAD RAW DATA INTO DDL STRUCTURE (raw schema)
+# -----------------------------
+
+load_path = os.path.join("sql", "load_core.sql")
+
+with engine.begin() as conn:
+    with open(load_path, "r", encoding="utf-8") as f:
+        load_sql = f.read()
+    conn.execute(text(load_sql))
+    print("Core tables populated from raw.")
 
