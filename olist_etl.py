@@ -59,28 +59,48 @@ for name, df in tables.items():
 
 print("All raw tables loaded successfully.")
 
+# ============================================================
+# Helper function: run a .sql file
+# ============================================================
+def run_sql_file(engine, path):
+    """Read and execute an entire .sql file as one execution block."""
+    with engine.begin() as conn:
+        with open(path, "r", encoding="utf-8") as f:
+            sql_text = f.read()
+        conn.execute(text(sql_text))
+    print(f"Executed SQL file: {path}")
+
 # -----------------------------
 # 6. RUN DDL TO CREATE CORE SCHEMA
 # -----------------------------
-
-ddl_path = os.path.join("sql", "ddl_core.sql")
-
-with engine.begin() as conn:
-    with open(ddl_path, "r", encoding="utf-8") as f:
-        ddl_sql = f.read()
-
-    conn.execute(text(ddl_sql))
-    print("Core schema (core.* tables, indexes, views) created successfully.")
+ddl_path = os.path.join("sql", "1_ddl_core.sql")
+run_sql_file(engine, ddl_path)
+print("Core schema (core.* tables, indexes, views) created successfully.")
 
 # -----------------------------
-# 7. LOAD RAW DATA INTO DDL STRUCTURE (raw schema)
+# 7. LOAD RAW DATA INTO CORE SCHEMA
 # -----------------------------
+load_path = os.path.join("sql", "2_load_core.sql")
+run_sql_file(engine, load_path)
+print("Core tables populated from raw.")
 
-load_path = os.path.join("sql", "load_core.sql")
+# -----------------------------
+# 8. CREATE ANALYTICS VIEWS (core.v_*)
+# -----------------------------
+analytics_views_path = os.path.join("sql", "3_analytics_views.sql")
+run_sql_file(engine, analytics_views_path)
+print("Analytics views (core.v_*) created successfully.")
 
-with engine.begin() as conn:
-    with open(load_path, "r", encoding="utf-8") as f:
-        load_sql = f.read()
-    conn.execute(text(load_sql))
-    print("Core tables populated from raw.")
+# -----------------------------
+# 9. CREATE ANALYTICS STAR SCHEMA TABLES (analytics.dim_*, analytics.fact_*)
+# -----------------------------
+star_schema_path = os.path.join("sql", "4_analytics_star_schema.sql")
+run_sql_file(engine, star_schema_path)
+print("Analytics star schema (analytics.* tables) created successfully.")
 
+# -----------------------------
+# 10. LOAD ANALYTICS TABLES FROM CORE (fills dim_*, fact_*)
+# -----------------------------
+analytics_load_path = os.path.join("sql", "5_analytics_load.sql")
+run_sql_file(engine, analytics_load_path)
+print("Analytics dimension and fact tables populated from core.")
