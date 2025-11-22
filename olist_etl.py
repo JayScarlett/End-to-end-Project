@@ -35,7 +35,11 @@ closed_deals = pd.read_csv(f"{funnel_path}/olist_closed_deals_dataset.csv")
 # -----------------------------
 # 4. CONNECT TO POSTGRESQL
 # -----------------------------
-engine = create_engine("postgresql://postgres:Postgres28@localhost:5432/olist_db")
+db_url = os.getenv(
+    "OLIST_DB_URL",
+    "postgresql://postgres:Postgres28@localhost:5432/olist_db"
+)
+engine = create_engine(db_url)
 
 # -----------------------------
 # 5. LOAD ALL TABLES INTO POSTGRES (raw schema)
