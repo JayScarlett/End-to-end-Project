@@ -170,8 +170,8 @@ SELECT
     odm.avg_review_score
 FROM core.v_order_summary os
 LEFT JOIN core.v_order_delivery_metrics odm
-    ON odm.order_id = os.order_id;
-
+    ON odm.order_id = os.order_id
+WHERE os.order_status <> 'canceled';   -- exclude canceled orders
 -- 3.2 fact_order_items
 -- Source:
 --   core.order_items for item level financials

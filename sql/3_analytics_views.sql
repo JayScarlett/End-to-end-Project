@@ -220,6 +220,7 @@ WITH order_totals AS (
         ON oi.order_id = o.order_id
     LEFT JOIN core.payments p
         ON p.order_id = o.order_id
+    WHERE o.order_status <> 'canceled'   -- exclude canceled orders
     GROUP BY
         o.order_id,
         o.order_purchase_timestamp::date
