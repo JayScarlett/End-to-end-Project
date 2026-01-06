@@ -5,6 +5,18 @@ import os
 import seaborn as sb
 
 # -----------------------------
+# 0. LOAD ENVIRONMENT VARIABLES 
+# -----------------------------
+from pathlib import Path
+from dotenv import load_dotenv
+
+env_path = Path(__file__).resolve().parent / ".env"
+print("Looking for .env at:", env_path)
+
+loaded = load_dotenv(dotenv_path=env_path)
+print("Loaded .env:", loaded)
+
+# -----------------------------
 # 1. DOWNLOAD DATASETS
 # -----------------------------
 olist_path = kagglehub.dataset_download("olistbr/brazilian-ecommerce")
@@ -35,11 +47,14 @@ closed_deals = pd.read_csv(f"{funnel_path}/olist_closed_deals_dataset.csv")
 # -----------------------------
 # 4. CONNECT TO POSTGRESQL
 # -----------------------------
-db_url = os.getenv(
-    "OLIST_DB_URL",
-    "postgresql://postgres:Postgres28@localhost:5432/olist_db"
+
+engine = create_engine(
+    f"postgresql+psycopg2://{os.getenv('DB_USER')}:"
+    f"{os.getenv('DB_PASSWORD')}@"
+    f"{os.getenv('DB_HOST')}:"
+    f"{os.getenv('DB_PORT')}/"
+    f"{os.getenv('DB_NAME')}"
 )
-engine = create_engine(db_url)
 
 # -----------------------------
 # 5. LOAD ALL TABLES INTO POSTGRES (raw schema)
