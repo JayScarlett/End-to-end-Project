@@ -1,0 +1,3 @@
+## Initial Data Validation Summary
+
+The dataset contains 98,816 completed orders across a two-year period. Data quality is high, with no duplicate orders and minimal, business-explainable missing values. Order values exhibit strong right skew, with most purchases clustered at lower price points and a small number of high-value outliers. These characteristics are consistent with real-world e-commerce behavior and suitable for downstream analytical exploration.
