@@ -1,0 +1,10 @@
+[33m03c7598[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;32mbackup-pre-rewrite[m[33m)[m Finalize analytics pipeline and Power BI reporting
+[33m18fedae[m Initialize EDA and correct DB connection config
+[33m4fa7480[m "Externalize database credentials into environment variables to clean code for public release"
+[33m9e7218b[m Exclude canceled orders from analytics facts and daily sales Updated core.v_daily_sales and analytics.fact_orders load to filter out canceled orders so revenue metrics only reflect non-canceled orders.
+[33m967c521[m End-to-End Pipeline: Added raw→core ETL, analytics views, star schema, and automated Python loader
+[33m470329b[m Populate core schema from raw tables with data quality fixes
+[33m7029fb4[m Merge branch 'main' of https://github.com/JayScarlett/End-to-end-Project
+[33m5dd7e6f[m Add ETL loader script and project setup
+[33mc6bbba7[m .gitignore
+[33m7b074c1[m first commit
