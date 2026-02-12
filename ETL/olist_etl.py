@@ -31,8 +31,8 @@ olist_path = kagglehub.dataset_download("olistbr/brazilian-ecommerce")
 with engine.begin() as conn:
     conn.execute(text("DROP SCHEMA IF EXISTS raw CASCADE;"))
     conn.execute(text("CREATE SCHEMA raw;"))
-    
-    tables = {
+
+tables = {
     "customers": "olist_customers_dataset.csv",
     "orders": "olist_orders_dataset.csv",
     "order_items": "olist_order_items_dataset.csv",
@@ -46,6 +46,7 @@ for table, filename in tables.items():
     df = pd.read_csv(f"{olist_path}/{filename}")
     df.to_sql(table, engine, schema="raw", if_exists="replace", index=False)
     print(f"Loaded raw.{table}")
+
 
 # -----------------------------
 # 3) Run DW DDL + DW load scripts

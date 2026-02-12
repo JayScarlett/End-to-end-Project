@@ -1,8 +1,8 @@
-BEGIN;
+-- =========================================
+-- 1) Date dimension (continuous calendar, no gaps)
+-- =========================================
+TRUNCATE TABLE dw.fact_order_item, dw.dim_date;
 
--- =========================================
--- 1) Date dimension
--- =========================================
 INSERT INTO dw.dim_date (
     date_key,
     full_date,
@@ -11,23 +11,34 @@ INSERT INTO dw.dim_date (
     month,
     day
 )
-SELECT DISTINCT
+SELECT
     TO_CHAR(d::date, 'YYYYMMDD')::int AS date_key,
     d::date                           AS full_date,
-    EXTRACT(YEAR FROM d)::smallint,
-    EXTRACT(QUARTER FROM d)::smallint,
-    EXTRACT(MONTH FROM d)::smallint,
-    EXTRACT(DAY FROM d)::smallint
-FROM (
-    SELECT order_purchase_timestamp::date AS d FROM raw.orders
-    UNION
-    SELECT order_delivered_customer_date::date FROM raw.orders
-    UNION
-    SELECT order_estimated_delivery_date::date FROM raw.orders
-    UNION
-    SELECT shipping_limit_date::date FROM raw.order_items
-) t
+    EXTRACT(YEAR FROM d)::smallint    AS year,
+    EXTRACT(QUARTER FROM d)::smallint AS quarter,
+    EXTRACT(MONTH FROM d)::smallint   AS month,
+    EXTRACT(DAY FROM d)::smallint     AS day
+FROM generate_series(
+    (
+      SELECT LEAST(
+        (SELECT MIN(order_purchase_timestamp)::date FROM raw.orders),
+        (SELECT MIN(order_delivered_customer_date)::date FROM raw.orders),
+        (SELECT MIN(order_estimated_delivery_date)::date FROM raw.orders),
+        (SELECT MIN(shipping_limit_date)::date FROM raw.order_items)
+      )
+    ),
+    (
+      SELECT GREATEST(
+        (SELECT MAX(order_purchase_timestamp)::date FROM raw.orders),
+        (SELECT MAX(order_delivered_customer_date)::date FROM raw.orders),
+        (SELECT MAX(order_estimated_delivery_date)::date FROM raw.orders),
+        (SELECT MAX(shipping_limit_date)::date FROM raw.order_items)
+      )
+    ),
+    INTERVAL '1 day'
+) AS d
 WHERE d IS NOT NULL;
+
 
 -- =========================================
 -- 2) Customer dimension
@@ -90,9 +101,14 @@ INSERT INTO dw.fact_order_item (
     product_key,
     purchase_date_key,
     shipping_limit_date_key,
+    delivered_customer_date_key,
+    estimated_delivery_date_key,
     order_status,
     item_price,
-    freight_value
+    freight_value,
+    item_count,
+    delivery_days,
+    late_delivery_flag
 )
 SELECT
     oi.order_id,
@@ -105,10 +121,23 @@ SELECT
     TO_CHAR(o.order_purchase_timestamp::date, 'YYYYMMDD')::int,
     TO_CHAR(oi.shipping_limit_date::date, 'YYYYMMDD')::int,
 
+    TO_CHAR(o.order_delivered_customer_date::date, 'YYYYMMDD')::int,
+    TO_CHAR(o.order_estimated_delivery_date::date, 'YYYYMMDD')::int,
+
     o.order_status,
 
     oi.price::numeric(10,2),
-    oi.freight_value::numeric(10,2)
+    oi.freight_value::numeric(10,2),
+
+    1 AS item_count,
+
+    (o.order_delivered_customer_date::date
+     - o.order_purchase_timestamp::date) AS delivery_days,
+
+   (o.order_status = 'delivered'
+ AND o.order_delivered_customer_date::date >
+     o.order_estimated_delivery_date::date)
+ AS late_delivery_flag
 FROM raw.order_items oi
 JOIN raw.orders o
   ON oi.order_id = o.order_id
@@ -119,4 +148,3 @@ JOIN dw.dim_seller ds
 JOIN dw.dim_product dp
   ON oi.product_id = dp.product_id;
 
-COMMIT;

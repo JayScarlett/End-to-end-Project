@@ -1,62 +1,146 @@
-# End-to-End E-Commerce Analytics Project
+# Data Analytics Warehouse
 
-## Project Overview
-
-This project demonstrates an end-to-end analytics workflow using a real-world e-commerce dataset. It follows a production-style approach, beginning with database design and ETL, progressing through exploratory data analysis, and culminating in business-focused insights delivered through interactive dashboards.
-
-“The objective is to demonstrate ownership of the full analytics lifecycle: building reliable data foundations, validating data behavior, and translating findings into decision-support artifacts.”
----
-
-## Data Engineering and ETL
-
-This phase focuses on building a reliable and scalable analytics foundation.
-
-Key components include:
-- Relational database design and schema normalization
-- Construction of an analytics star schema
-- SQL-based data loading and transformation
-- Python ETL pipelines for reproducible ingestion
-- Data quality checks and anomaly handling
-
-This layer serves as the single source of truth for downstream analysis and reporting.
+**PostgreSQL · SQL · Python · Power BI · ETL · Dimensional Modeling**
 
 ---
 
-## Exploratory Data Analysis (EDA)
+## Overview
 
-This phase validates the analytics layer and explores key patterns in the data using Python.
+This project demonstrates a complete analytics engineering workflow from transactional data ingestion to dimensional warehouse modeling and executive reporting.
 
-Key activities include:
-- Time-series analysis of orders and revenue at daily and monthly levels
-- Distribution analysis of order and payment values
-- Identification of anomalies, outliers, and dataset boundaries
-- Validation of aggregation logic used in analytics tables
+It emphasizes practical data warehouse design principles including fact table grain enforcement, continuous calendar implementation, SQL-based transformations, ETL automation with Python, and BI-ready semantic modeling.
 
-The EDA phase informs which metrics and dimensions are meaningful for business analysis.
+The final deliverable is a star schema data warehouse optimized for accurate aggregation, time intelligence, and KPI reporting in Power BI.
+
+This version is a redesign of an earlier iteration, introducing a cleaner dimensional architecture and a formal data validation layer.
 
 ---
 
-## Business Analysis and Decision Support (In Progress)
+## Architecture
 
-This phase builds on the validated analytics layer and EDA findings to answer concrete business questions using stakeholder-oriented visuals and metrics.
+The project follows a layered warehouse design aligned with modern analytics practices.
 
-### What is complete
-- Analytics star schema finalized and validated
-- Fact and dimension tables loaded into the analytics layer
-- Time-series EDA completed in Python
-- Key anomalies and dataset boundaries identified
-- Power BI semantic model established
+### Raw Layer  
+Source-aligned tables ingested into PostgreSQL.
 
-### What this phase will deliver
-- Executive-level KPIs and growth trends
-- Revenue and order performance by time, customer, and category
-- Operational insights related to delivery performance and customer experience
-- Interactive Power BI dashboards designed for business decision-making
+### Core Relational Layer  
+A normalized schema designed to:
 
-### Planned business questions
-- How has revenue scaled relative to order volume over time?
-- Which segments contribute disproportionately to total revenue?
-- What operational factors correlate with customer satisfaction?
-- Are observed growth patterns seasonal or structural?
+- Preserve transactional grain  
+- Enforce referential integrity  
+- Maintain source-of-truth fidelity  
 
-This phase emphasizes insight generation and business interpretation rather than additional data modeling.
+This layer prioritizes correctness and structural integrity.
+
+### Analytics Layer (Star Schema)
+
+Dimensional model optimized for reporting and BI tools:
+
+**Fact**
+- `order_fact`  
+  - Grain: one row per `order_id` + `order_item_id`
+
+**Dimensions**
+- `date_dim` (continuous calendar table, no gaps)
+- `customer_dim`
+- `seller_dim`
+- `product_dim`
+
+**Design Decisions**
+- Explicit fact grain enforcement to prevent duplication  
+- Continuous date dimension to support time intelligence  
+- Derived operational metrics stored in the fact table  
+- Clean one-to-many dimensional relationships  
+
+This structure enables efficient filtering, aggregation, and KPI calculation in Power BI.
+
+---
+
+## ETL & Data Engineering
+
+The warehouse can be rebuilt end-to-end using:
+
+- SQL DDL scripts for schema creation  
+- SQL-based dimensional transformations  
+- Python-based ETL orchestration (SQLAlchemy, dotenv)  
+- Environment-based configuration for secure credential management  
+
+This demonstrates:
+
+- Data pipeline structuring  
+- SQL transformation logic  
+- Reproducibility and automation  
+- Practical analytics engineering fundamentals  
+
+---
+
+## Data Validation
+
+Before building dashboards, the warehouse is validated using SQL-based checks:
+
+- Row count reconciliation (raw vs fact tables)  
+- Revenue reconciliation  
+- Duplicate grain detection  
+- Referential integrity validation  
+- Continuous calendar enforcement  
+- Derived metric sanity checks  
+
+These validations ensure downstream analytics are accurate and reliable.
+
+---
+
+## Business Intelligence (Power BI)
+
+The dimensional warehouse feeds an executive-level dashboard.
+
+### Executive Overview
+
+**KPIs**
+- Total Revenue  
+- Revenue per Order  
+- Average Delivery Days  
+- Late Delivery Rate  
+
+**Visuals**
+- Revenue trend over time  
+- Top revenue-driving product categories  
+
+The BI model includes DAX measures, star-schema relationships, and interactive filtering to support business decision-making.
+
+---
+
+## Repository Structure
+ETL/
+├── sql/ # DDL and dimensional load scripts
+├── olist_etl.py # Python ETL orchestration
+└── DDL Images/ # Schema diagrams
+
+EDA/
+└── Post ETL Data Validation.py # Validation checks
+
+PowerBI/
+└── Executive Dashboard.pbix # BI dashboard
+
+---
+
+## Technologies
+
+- PostgreSQL  
+- SQL  
+- Python  
+- Power BI  
+- Git / GitHub  
+
+---
+
+## Key Concepts Demonstrated
+
+- Dimensional modeling (star schema design)  
+- Fact table grain enforcement  
+- Continuous calendar implementation  
+- SQL transformation pipelines  
+- ETL automation  
+- Data validation prior to reporting  
+- KPI definition and business metric modeling  
+
+---
